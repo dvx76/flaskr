@@ -18,6 +18,8 @@ def create_app(test_config: Optional[Mapping[str, Any]] = None) -> Flask:
     else:
         app.config.from_mapping(test_config)
 
+    app.jinja_options["autoescape"] = True
+
     os.makedirs(app.instance_path, exist_ok=True)
 
     @app.route("/ping")
