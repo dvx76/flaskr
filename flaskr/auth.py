@@ -12,7 +12,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from flaskr.db import get_db
+from .db import get_db
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -22,7 +22,6 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        db = get_db()
         error = None
 
         if not username:
@@ -31,6 +30,8 @@ def register():
             error = "Password is required."
 
         if error is None:
+            db = get_db()
+            print(f"{db=}")
             try:
                 db.execute(
                     "INSERT INTO user (username, password) VALUES (?, ?)",
@@ -39,6 +40,9 @@ def register():
                 db.commit()
             except db.IntegrityError:
                 error = f"User {username} is already registered."
+            except Exception as err:
+                print(f"{err=}")
+                raise
             else:
                 return redirect(url_for("auth.login"))
 
@@ -85,12 +89,6 @@ def load_logged_in_user():
         )
 
 
-@bp.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("blog.index"))
-
-
 def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
@@ -100,3 +98,9 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
+
+@bp.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("blog.index"))

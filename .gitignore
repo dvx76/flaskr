@@ -1,14 +1,16 @@
-.venv/
-
-*.pyc
+# Python-generated files
 __pycache__/
-
-instance/
-
-.pytest_cache/
-.coverage
-htmlcov/
-
-dist/
+*.py[oc]
 build/
-*.egg-info/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# SQLite database files
+*.sqlite
+
+# Test coverage db
+.coverage

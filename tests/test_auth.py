@@ -2,7 +2,7 @@ import pytest
 from flask import g, session
 from flask.testing import FlaskClient
 
-from flaskr.db import get_db
+from flaskr import db
 
 
 def test_register_get(client: FlaskClient):
@@ -18,7 +18,7 @@ def test_register_post(client: FlaskClient):
     assert response.headers["Location"] == "/auth/login"
 
     assert (
-        get_db().execute("SELECT * FROM user WHERE username = 'a'").fetchone()
+        db.get_db().execute("SELECT * FROM user WHERE username = 'a'").fetchone()
         is not None
     )
 
@@ -61,3 +61,32 @@ def test_login_validate_input(client, username, password, message):
         "/auth/login", data={"username": username, "password": password}
     )
     assert message in response.text
+
+
+@pytest.mark.parametrize(
+    "path",
+    (
+        "/create",
+        "/1/update",
+    ),
+)
+def test_create_update_validate(client: FlaskClient, path: str):
+    client.post("/auth/login", data={"username": "test", "password": "test"})
+
+    response = client.post(path, data={"title": "", "body": "invalid post"})
+    assert b"Title is required." in response.data
+
+    conn = db.get_db()
+    post = conn.execute("SELECT * FROM post WHERE body = 'invalid post'").fetchone()
+    assert post is None
+
+
+def test_delete(client: FlaskClient):
+    client.post("/auth/login", data={"username": "test", "password": "test"})
+
+    response = client.post("/1/delete")
+    assert response.headers["Location"] == "/"
+
+    conn = db.get_db()
+    post = conn.execute("SELECT * FROM post WHERE id = 1").fetchone()
+    assert post is None
