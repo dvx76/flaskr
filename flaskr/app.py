@@ -99,9 +99,7 @@ def create_post(body: dict, token_info: dict):
 
 app = connexion.FlaskApp(__name__)
 app.add_api("openapi.yaml")
-app.app.config.from_mapping(
-    DATABASE=os.path.join(app.app.instance_path, "flaskr.sqlite")
-)
+app.app.config["DATABASE"] = "flaskr.sqlite"
 
 if __name__ == "__main__":
     app.run("flaskr.app:app", port=5000)
