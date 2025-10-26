@@ -3,9 +3,8 @@ from flask import Flask
 from . import auth, blog, db
 
 
-def create_app(database: str = "flaskr.sqlite") -> Flask:
+def create_app() -> Flask:
     app = Flask(__name__)
-    app.config["DATABASE"] = database
     app.secret_key = "dev"
     app.jinja_options["autoescape"] = True
 

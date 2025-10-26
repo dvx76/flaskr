@@ -1,31 +1,21 @@
-import sqlite3
-from pathlib import Path
+from sqlalchemy import create_engine
+from sqlalchemy.orm import scoped_session, sessionmaker
 
-from flask import current_app, g
+from .models import Base
 
-
-def get_db() -> sqlite3.Connection:
-    if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE"], uri=True)
-        g.db.row_factory = sqlite3.Row
-    return g.db
+engine = create_engine("sqlite:///flaskr.sqlite")
+db_session = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
+)
 
 
 def close_db(_exc=None):
-    if "db" in g:
-        g.db.close()
+    db_session.remove()
 
 
-def init_db(database: str = "flaskr.sqlite"):
-    db = sqlite3.connect(database, uri=True)
-
-    with open(Path(__file__).parent / "schema.sql") as schema:
-        db.executescript(schema.read())
-
-    print("SQLite schema created. Tables in DB:")
-    result = db.execute("SELECT name FROM sqlite_master WHERE type='table'")
-    print(result.fetchall())
-    # db.close()
+def init_db(database: str = "sqlite:///flaskr.sqlite"):
+    engine = create_engine(database, echo=True)
+    Base.metadata.create_all(engine)
 
 
 if __name__ == "__main__":
