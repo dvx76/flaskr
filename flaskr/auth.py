@@ -14,7 +14,7 @@ from flask import (
 from sqlalchemy import select
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from .db import db_session
+from .db import get_db_session
 from .models import User
 
 bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -33,15 +33,13 @@ def register():
             error = "Password is required."
 
         if error is None:
+            db_session = get_db_session()
             user = User(username=username, password=generate_password_hash(password))
             db_session.add(user)
             try:
                 db_session.commit()
             except sqlalchemy.exc.IntegrityError:
                 error = f"User {username} is already registered."
-            except Exception as err:
-                print(f"{err=}")
-                raise
             else:
                 return redirect(url_for("auth.login"))
 
@@ -56,9 +54,10 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         error = None
-        user = db_session.execute(
+        db_session = get_db_session()
+        user = db_session.scalars(
             select(User).where(User.username == username)
-        ).scalar_one_or_none()
+        ).one_or_none()
 
         if user is None:
             error = "Incorrect username."
@@ -82,9 +81,10 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = db_session.execute(
+        db_session = get_db_session()
+        g.user = db_session.scalars(
             select(User).where(User.id == user_id)
-        ).scalar_one_or_none()
+        ).one_or_none()
 
 
 def login_required(view):
