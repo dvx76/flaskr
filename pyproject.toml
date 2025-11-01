@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["coverage>=7.10.7", "flask~=3.0", "pytest>=8.4.2"]
+dependencies = [
+    "coverage>=7.10.7",
+    "flask~=3.0",
+    "pytest>=8.4.2",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

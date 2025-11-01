@@ -3,6 +3,9 @@ from pathlib import Path
 
 from flask import current_app, g
 
+LOCAL_DIRECTORY = Path(__file__).parent
+SQLITE_DB_FILE = str(LOCAL_DIRECTORY / "flaskr.sqlite")
+
 
 def get_db() -> sqlite3.Connection:
     if "db" not in g:
@@ -16,16 +19,15 @@ def close_db(_exc=None):
         g.db.close()
 
 
-def init_db(database: str = "flaskr.sqlite"):
+def init_db(database: str = SQLITE_DB_FILE):
     db = sqlite3.connect(database, uri=True)
 
-    with open(Path(__file__).parent / "schema.sql") as schema:
+    with open(LOCAL_DIRECTORY / "schema.sql") as schema:
         db.executescript(schema.read())
 
     print("SQLite schema created. Tables in DB:")
     result = db.execute("SELECT name FROM sqlite_master WHERE type='table'")
     print(result.fetchall())
-    # db.close()
 
 
 if __name__ == "__main__":

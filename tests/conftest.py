@@ -8,9 +8,9 @@ from flaskr import create_app, db
 def app():
     database = "file:mem1?mode=memory&cache=shared"
     app = create_app(database)
+    db.init_db(database)
     with app.app_context():
         conn = db.get_db()
-        db.init_db(database)
         conn.execute(
             "INSERT INTO user (username, password) VALUES "
             "('test', 'scrypt:32768:8:1$B6EWUB7sblZHpKwE$74951791e0ebcdcf91999e0e4c3e7768fcb87f994c35de0d80e99d83ec36e9f542b76c4d486c57ced5cea72fd76c3f5a64b0a2c31a89a02e3a86a52a6f52fb1c')"
