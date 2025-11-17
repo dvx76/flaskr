@@ -37,7 +37,8 @@ def auth(username: str, password: str):
 def get_all_posts():
     db = get_db()
     posts = db.execute(
-        "SELECT id, author_id, created, title, body FROM post ORDER BY created DESC"
+        "SELECT p.id, u.username, strftime('%FT%TZ', p.created) as created, p.title, p.body "
+        "FROM post p JOIN user u ON u.id = p.author_id ORDER BY p.created DESC"
     ).fetchall()
 
     return [dict(post) for post in posts]
@@ -46,7 +47,9 @@ def get_all_posts():
 def get_post(id: int):
     db = get_db()
     post = db.execute(
-        "SELECT id, author_id, created, title, body FROM post WHERE id = (?)", (id,)
+        "SELECT p.id, u.username, strftime('%FT%TZ', p.created) as created, p.title, p.body "
+        "FROM post p JOIN user u ON u.id = p.author_id WHERE p.id = (?)",
+        (id,),
     ).fetchone()
 
     if not post:
@@ -89,12 +92,14 @@ def create_post(body: dict, token_info: dict):
     db = get_db()
     row = db.execute(
         "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?) "
-        "RETURNING id, author_id, created, title, body",
+        "RETURNING id, created, title, body",
         (body["title"], body["body"], token_info["sub"]),
     ).fetchone()
     db.commit()
 
-    return dict(row), 201
+    post = dict(row)
+    post["author"] = token_info["username"]
+    return post, 201
 
 
 app = connexion.FlaskApp(__name__)
