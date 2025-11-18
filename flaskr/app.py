@@ -1,4 +1,3 @@
-import os
 import sqlite3
 
 import connexion
@@ -62,7 +61,8 @@ def update_post(id: int, body: dict, token_info: dict):
     db = get_db()
     post = db.execute(
         "UPDATE post SET title = ?, body = ? WHERE id = ? and author_id = ? "
-        "RETURNING id, author_id, created, title, body",
+        "RETURNING id, (SELECT username FROM user WHERE id = post.author_id) as username, "
+        "strftime('%FT%TZ', created) as created, title, body",
         (body["title"], body["body"], id, token_info["sub"]),
     ).fetchone()
     db.commit()
@@ -77,7 +77,8 @@ def delete_post(id: int, token_info: dict):
     db = get_db()
     post = db.execute(
         "DELETE FROM post WHERE id = ? and author_id = ? "
-        "RETURNING id, author_id, created, title, body",
+        "RETURNING id, (SELECT username FROM user WHERE id = post.author_id) as username, "
+        "strftime('%FT%TZ', created) as created, title, body",
         (id, token_info["sub"]),
     ).fetchone()
     db.commit()
@@ -92,7 +93,8 @@ def create_post(body: dict, token_info: dict):
     db = get_db()
     row = db.execute(
         "INSERT INTO post (title, body, author_id) VALUES (?, ?, ?) "
-        "RETURNING id, created, title, body",
+        "RETURNING id, (SELECT username FROM user WHERE id = post.author_id) as username, "
+        "strftime('%FT%TZ', created) as created, title, body",
         (body["title"], body["body"], token_info["sub"]),
     ).fetchone()
     db.commit()
